@@ -192,6 +192,21 @@ class AddNode(Node):
         ]
 
 
+class AddImmNode(Node):
+    MNEMONIC = 'addi'
+    NUM_OPS = 2
+
+    def _emit(self):
+        imm_label = temp_label()
+        ret = [
+            Instruction('Z', 'Z', '$+4'),
+            DataInstruction(self.op1, label=imm_label),
+        ]
+
+        ret.extend(AddNode(imm_label, self.op2).emit())
+        return ret
+
+
 class SubNode(Node):
     MNEMONIC = 'sub'
     NUM_OPS = 2
@@ -200,6 +215,21 @@ class SubNode(Node):
         return [
             Instruction(self.op1, self.op2),
         ]
+
+
+class SubImmNode(Node):
+    MNEMONIC = 'subi'
+    NUM_OPS = 2
+
+    def _emit(self):
+        imm_label = temp_label()
+        ret = [
+            Instruction('Z', 'Z', '$+4'),
+            DataInstruction(self.op1, label=imm_label),
+        ]
+
+        ret.extend(SubNode(imm_label, self.op2).emit())
+        return ret
 
 
 class NopNode(Node):
@@ -311,6 +341,16 @@ def generate_code(instructions):
 
         ctr += insn.size
 
+    def get_label(s):
+        if '+' in s:
+            label, _, off = s.partition('+')
+            off = int(off)
+        else:
+            label = s
+            off = 0
+
+        return labels[label] + off
+
     # Apply fixups
     for insn in instructions:
         if not insn.is_instruction:
@@ -321,17 +361,17 @@ def generate_code(instructions):
                 if insn.A.startswith('$'):
                     insn.A = insn.address + int(insn.A[1:])
                 else:
-                    insn.A = labels[insn.A]
+                    insn.A = get_label(insn.A)
             if isinstance(insn.B, str):
                 if insn.B.startswith('$'):
                     insn.B = insn.address + int(insn.B[1:])
                 else:
-                    insn.B = labels[insn.B]
+                    insn.B = get_label(insn.B)
             if isinstance(insn.C, str):
                 if insn.C.startswith('$'):
                     insn.C = insn.address + int(insn.C[1:])
                 else:
-                    insn.C = labels[insn.C]
+                    insn.C = get_label(insn.C)
         except KeyError as e:
             raise Exception("Label '%s' not found at address %d" % (
                 e.args[0], insn.address))
@@ -372,7 +412,9 @@ NODE_CLASSES = [
     ZeroNode,
     MoveNode,
     AddNode,
+    AddImmNode,
     SubNode,
+    SubImmNode,
     NopNode,
     JumpNode,
     JzNode,
@@ -422,7 +464,7 @@ def parse(text):
         for j in range(num_ops):
             op_re = (
                 r'^(' +
-                r'(?P<id>' + IDENTIFIER + r')|' +
+                r'(?P<id>' + IDENTIFIER + r'(?P<off>\+[0-2])?)|' +
                 r'(?P<rel>\$[-+]?[1-9][0-9]*)|' +
                 r'(?P<hex>0[xX][a-fA-F0-9]+)|' +
                 r'(?P<num>[-+]?(?:[1-9][0-9]*)|0)|' +
@@ -441,7 +483,10 @@ def parse(text):
             groups = op_match.groupdict()
             if groups['id'] is not None:
                 # Identifier
-                ops.append(groups['id'])
+                i = groups['id']
+                if groups['off'] is not None:
+                    i += groups['off']
+                ops.append(i)
             if groups['rel'] is not None:
                 # Relative address
                 ops.append(groups['rel'])
