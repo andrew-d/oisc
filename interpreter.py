@@ -113,7 +113,7 @@ def main():
     except VirtualMemoryError as e:
         print("VM accessed invalid memory: %d" % (e.addr,), file=sys.stderr)
 
-    print(vm, file=sys.stderr)
+    print(' '.join(str(x) for x in vm.mem), file=sys.stderr)
 
 
 if __name__ == '__main__':
