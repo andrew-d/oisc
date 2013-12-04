@@ -1,12 +1,25 @@
-start:  mov ctr, printme_len
-loop:   jz ctr, done
-        mov -1, printme
+; Manually emit mov
+start:  subleq curr, curr, $+3
+mod:    subleq printme, Z, $+3
+        subleq Z, curr, $+3
+        subleq Z, Z, $+3
+
+        jz curr, done
+
+        output curr
+        addi 1, mod
+
+        jmp start
+
 done:   jmp -1
 
 
 
-num_1:          db 1
-ctr:            db 0
+addr:           db 0
+curr:           db 0
 printme:        db 'H'
-                db 'i'
-printme_len:    db 2
+                db 'e'
+                db 'l'
+                db 'l'
+                db 'o'
+                db 0
