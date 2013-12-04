@@ -4,8 +4,6 @@ from __future__ import print_function
 
 import sys
 
-from assemble_low import assemble
-
 
 class VirtualMemoryError(IndexError):
     def __init__(self, addr):
@@ -27,7 +25,9 @@ class Memory(object):
                 return 0
             else:
                 ch = sys.stdin.read(1)
-                return ch
+                if len(ch) == 0:
+                    return -1
+                return ord(ch)
 
         if index < 0 or index >= self.capacity:
             raise VirtualMemoryError(index)
@@ -105,6 +105,7 @@ def main():
     code = [int(x) for x in lines[1].split(' ')]
 
     print('[vm] start = %d' % (start,), file=sys.stderr)
+    print('[vm] code = %r' % (code,), file=sys.stderr)
     vm = Memory(code)
 
     try:
