@@ -1,0 +1,6 @@
+start:  ch_H, -1
+        ch_i, -1
+        0,     0,     -1
+
+ch_H:   db 'H'
+ch_i:   db 'i'

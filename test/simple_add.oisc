@@ -1,0 +1,13 @@
+Z:      db 0
+
+start:  loc_a, Z
+        Z,     loc_b
+        Z,     Z
+        Z,     Z,  $+5
+
+        db 0
+        db 0
+        0,     0,     -1
+
+loc_a:  db 1
+loc_b:  db 2
