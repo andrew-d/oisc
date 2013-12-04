@@ -249,17 +249,99 @@ class JumpNode(Node):
         return [Instruction('Z', 'Z', self.op1)]
 
 
+# Conditional jumps can be represented with this helpful framework:
+# Thanks to: http://mazonka.com/subleq/hsqnts.html
+#       |
+#       V
+# +-------------+
+# |             |
+# | +-- Z x @   |  x>0
+# | |   Z Z @ --|------->
+# | +-> x Z @ --|------->
+# |     Z       |  x==0
+# |     |       |
+# +-------------+
+#       |
+#       | x<0
+#       V
+#
+# I've instead modified this such that the final arrow (x < 0) is
+# another jump, and any failed conditions result in falling through
+# the block - in essence, if a condition matches, it jumps, otherwise
+# continue 'past' this block.
+def make_jump(op, gt_zero=None, eq_zero=None, lt_zero=None):
+    assert ((gt_zero is not None) or
+            (eq_zero is not None) or
+            (lt_zero is not None))
+
+    if gt_zero is None:
+        gt_zero = '$+9'
+    if eq_zero is None:
+        eq_zero = '$+6'
+    if lt_zero is None:
+        lt_zero = '$+3'
+
+    return [
+        Instruction('Z', op, '$+6'),
+        Instruction('Z', 'Z', gt_zero),
+        Instruction(op, 'Z', eq_zero),
+        Instruction('Z', 'Z', lt_zero),
+    ]
+
+# jz = jump if equal to zero
+# jnz = jump if not equal to zero
+# jl = jump if less than 0
+# jg = jump if greater than 0
+# jle = jump if <= 0
+# jge = jump if >= 0
+
+
 class JzNode(Node):
     MNEMONIC = 'jz'
     NUM_OPS = 2
 
     def _emit(self):
-        return [
-            Instruction(self.op1, 'Z', '$+6'),
-            Instruction('Z', 'Z', '$+9'),
-            Instruction('Z', 'Z'),
-            Instruction('Z', self.op1, self.op2),
-        ]
+        return make_jump(self.op1, eq_zero=self.op2)
+
+
+class JnzNode(Node):
+    MNEMONIC = 'jnz'
+    NUM_OPS = 2
+
+    def _emit(self):
+        return make_jump(self.op1, lt_zero=self.op2, gt_zero=self.op2)
+
+
+class JlNode(Node):
+    MNEMONIC = 'jl'
+    NUM_OPS = 2
+
+    def _emit(self):
+        return make_jump(self.op1, lt_zero=self.op2)
+
+
+class JgNode(Node):
+    MNEMONIC = 'jg'
+    NUM_OPS = 2
+
+    def _emit(self):
+        return make_jump(self.op1, gt_zero=self.op2)
+
+
+class JleNode(Node):
+    MNEMONIC = 'jle'
+    NUM_OPS = 2
+
+    def _emit(self):
+        return make_jump(self.op1, lt_zero=self.op2, eq_zero=self.op2)
+
+
+class JgeNode(Node):
+    MNEMONIC = 'jge'
+    NUM_OPS = 2
+
+    def _emit(self):
+        return make_jump(self.op1, gt_zero=self.op2, eq_zero=self.op2)
 
 
 class BitshiftLeftNode(Node):
@@ -419,6 +501,11 @@ NODE_CLASSES = [
     NopNode,
     JumpNode,
     JzNode,
+    JnzNode,
+    JlNode,
+    JgNode,
+    JleNode,
+    JgeNode,
     BitshiftLeftNode,
     InputNode,
     OutputNode,
