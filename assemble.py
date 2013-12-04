@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import re
 import sys
+import itertools
 from numbers import Number
 
 
@@ -527,7 +528,21 @@ def convert_to_instructions(nodes):
     return ret
 
 
+def grouper(n, iterable):
+    it = iter(iterable)
+    while True:
+       chunk = tuple(itertools.islice(it, n))
+       if not chunk:
+           return
+       yield chunk
+
+
 def main():
+    if len(sys.argv) > 1 and '-c' == sys.argv[1]:
+        c_format = True
+    else:
+        c_format = False
+
     inp = sys.stdin.read()
     nodes = parse(inp)
     #print(nodes, file=sys.stderr)
@@ -536,8 +551,19 @@ def main():
     print(pretty_print_code(insns), file=sys.stderr)
 
     code, start = generate_code(insns)
-    print(start)
-    print(' '.join(str(x) for x in code))
+
+    if not c_format:
+        print(start)
+        print(' '.join(str(x) for x in code))
+    else:
+        lines = []
+        lines.append("int32_t code = {")
+        for chunk in grouper(10, code):
+            lines.append('\t' + ', '.join(str(x) for x in chunk) + ',')
+        lines.append('};')
+        lines.append('')
+        lines.append('int32_t start = %d;\n' % (start,))
+        print('\n'.join(lines))
 
     # ins = [
     #     Instruction('data', -1, label='start'),
