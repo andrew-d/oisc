@@ -78,6 +78,7 @@ class CommentInstruction(object):
     def __init__(self, comment):
         self.comment = comment
         self.label = None
+        self.address = None
 
     def __repr__(self):
         return "CommentInstruction(%r)" % (self.comment,)
@@ -485,7 +486,7 @@ def pretty_print_code(code):
             for ch in insn.data[1:]:
                 ret.append('db %d' % (ch,))
         elif isinstance(insn, CommentInstruction):
-            ret.append(' ' * 10 + '; ' + insn.comment)
+            ret.append(label + '; ' + insn.comment)
 
     return '\n'.join(ret)
 
@@ -638,6 +639,10 @@ def main():
     print(pretty_print_code(insns), file=sys.stderr)
 
     code, start = generate_code(insns)
+    for i, insn in enumerate(insns):
+        if isinstance(insn, CommentInstruction):
+            addr = insns[i + 1].address
+            print('%03d: ' % (addr,) + insn.comment, file=sys.stderr)
 
     if not c_format:
         print(start)
