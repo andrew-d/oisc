@@ -557,7 +557,7 @@ def main():
         print(' '.join(str(x) for x in code))
     else:
         lines = []
-        lines.append("int32_t code = {")
+        lines.append("int32_t code[] = {")
         for chunk in grouper(10, code):
             lines.append('\t' + ', '.join(str(x) for x in chunk) + ',')
         lines.append('};')
