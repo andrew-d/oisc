@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import re
+import sys
 from numbers import Number
 
 
@@ -101,9 +102,10 @@ class Node(object):
     MNEMONIC = ''
     NUM_OPS = 0
 
-    def __init__(self, op1=None, op2=None, label=None):
+    def __init__(self, op1=None, op2=None, op3=None, label=None):
         self.op1 = op1
         self.op2 = op2
+        self.op3 = op3
         self.label = label
 
     def emit(self):
@@ -125,6 +127,8 @@ class Node(object):
             s += ' ' + str(self.op1)
         if self.NUM_OPS > 1:
             s += ', ' + str(self.op2)
+        if self.NUM_OPS > 2:
+            s += ', ' + str(self.op3)
         return s
 
     def __repr__(self):
@@ -143,6 +147,14 @@ class DataNode(Node):
 
     def __repr__(self):
         return "DataNode(%r)" % (self.op1,)
+
+
+class SubleqNode(Node):
+    MNEMONIC = 'subleq'
+    NUM_OPS = 3
+
+    def _emit(self):
+        return [Instruction(self.op1, self.op2, self.op3)]
 
 
 class MoveNode(Node):
@@ -258,6 +270,22 @@ class BitshiftLeftNode(Node):
         return ret
 
 
+class InputNode(Node):
+    MNEMONIC = 'input'
+    NUM_OPS = 1
+
+    def _emit(self):
+        return [Instruction(-1, self.op1)]
+
+
+class OutputNode(Node):
+    MNEMONIC = 'output'
+    NUM_OPS = 1
+
+    def _emit(self):
+        return [Instruction(self.op1, -1)]
+
+
 def generate_code(instructions):
     labels = {}
     ctr = 0
@@ -340,6 +368,7 @@ def pretty_print_code(code):
 
 
 NODE_CLASSES = [
+    SubleqNode,
     ZeroNode,
     MoveNode,
     AddNode,
@@ -348,6 +377,8 @@ NODE_CLASSES = [
     JumpNode,
     JzNode,
     BitshiftLeftNode,
+    InputNode,
+    OutputNode,
 ]
 
 NUM_OPS = {n.MNEMONIC: n.NUM_OPS for n in NODE_CLASSES}
@@ -364,20 +395,23 @@ def parse(text):
 
     ret = []
     for i, line in enumerate(non_comment):
+        # Remaining in the line.
+        remaining = line
+
         # Check for label.
         label = None
-        label_match = re.match(r'^(' + IDENTIFIER + r'):\s+', line)
+        label_match = re.match(r'^(' + IDENTIFIER + r'):\s+', remaining)
         if label_match:
             label = label_match.group(1)
-            line = line[label_match.end(0):]
+            remaining = remaining[label_match.end(0):]
 
         # Read the first word, which will be our instruction.
-        insn_match = re.match(r'^(\w+)\s+', line)
+        insn_match = re.match(r'^(\w+)\s+', remaining)
         if not insn_match:
             raise Exception("Syntax error: no instruction found on line %d" % (i + 1,))
 
         instruction = insn_match.group(1).lower()
-        line = line[insn_match.end(0):]
+        remaining = remaining[insn_match.end(0):]
 
         num_ops = NUM_OPS.get(instruction)
         if num_ops is None:
@@ -387,19 +421,21 @@ def parse(text):
         ops = []
         for j in range(num_ops):
             op_re = (
-                '^(' +
-                '(?P<id>' + IDENTIFIER + ')|' +
-                '(?P<rel>\$[-+]?[1-9][0-9]*)|' +
-                '(?P<hex>0[xX][a-fA-F0-9]+)|' +
-                '(?P<num>[-+]?[1-9][0-9]*)' +
-                ')'
+                r'^(' +
+                r'(?P<id>' + IDENTIFIER + r')|' +
+                r'(?P<rel>\$[-+]?[1-9][0-9]*)|' +
+                r'(?P<hex>0[xX][a-fA-F0-9]+)|' +
+                r'(?P<num>[-+]?(?:[1-9][0-9]*)|0)|' +
+                r"(?P<char>'.')" +
+                r')'
             )
             if j != num_ops - 1:
                 op_re += ',\s+'
 
-            op_match = re.match(op_re, line)
+            op_match = re.match(op_re, remaining)
             if op_match is None:
                 print(line)
+                print(remaining)
                 raise Exception("Could not find operand %d on line %d" % (j + 1, i + 1))
 
             groups = op_match.groupdict()
@@ -415,8 +451,10 @@ def parse(text):
             elif groups['num'] is not None:
                 # Regular number
                 ops.append(int(groups['num']))
+            elif groups['char'] is not None:
+                ops.append(ord(groups['char'][1]))
 
-            line = line[op_match.end(0):]
+            remaining = remaining[op_match.end(0):]
 
         if instruction == 'db':
             node = DataNode(ops[0], label=label)
@@ -445,16 +483,13 @@ def convert_to_instructions(nodes):
 
 
 def main():
-    nodes = parse("""
-          shl val, count
-          jmp -1
+    inp = sys.stdin.read()
+    nodes = parse(inp)
+    #print(nodes, file=sys.stderr)
 
-          val: db 3
-          count: db 4
-          """)
-    print(nodes)
     insns = convert_to_instructions(nodes)
-    print(pretty_print_code(insns))
+    print(pretty_print_code(insns), file=sys.stderr)
+
     code, start = generate_code(insns)
     print(start)
     print(' '.join(str(x) for x in code))
