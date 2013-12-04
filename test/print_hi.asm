@@ -27,4 +27,5 @@ printme:        db 'H'
                 db 'l'
                 db 'l'
                 db 'o'
+                db 10
                 db 0
