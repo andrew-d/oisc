@@ -449,7 +449,7 @@ def parse(text):
             remaining = remaining[label_match.end(0):]
 
         # Read the first word, which will be our instruction.
-        insn_match = re.match(r'^(\w+)\s+', remaining)
+        insn_match = re.match(r'^(\w+)(?:\s+|$)', remaining)
         if not insn_match:
             raise Exception("Syntax error: no instruction found on line %d" % (i + 1,))
 
