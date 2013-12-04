@@ -164,9 +164,9 @@ class MoveNode(Node):
 
     def _emit(self):
         return [
-            Instruction(self.op2, self.op2),
-            Instruction(self.op1, 'Z'),
-            Instruction('Z', self.op2),
+            Instruction(self.op1, self.op1),
+            Instruction(self.op2, 'Z'),
+            Instruction('Z', self.op1),
             Instruction('Z', 'Z'),
         ]
 
@@ -187,8 +187,8 @@ class AddNode(Node):
 
     def _emit(self):
         return [
-            Instruction(self.op1, 'Z'),
-            Instruction('Z', self.op2),
+            Instruction(self.op2, 'Z'),
+            Instruction('Z', self.op1),
             Instruction('Z', 'Z'),
         ]
 
@@ -201,10 +201,10 @@ class AddImmNode(Node):
         imm_label = temp_label()
         ret = [
             Instruction('Z', 'Z', '$+4'),
-            DataInstruction(self.op1, label=imm_label),
+            DataInstruction(self.op2, label=imm_label),
         ]
 
-        ret.extend(AddNode(imm_label, self.op2).emit())
+        ret.extend(AddNode(self.op1, imm_label).emit())
         return ret
 
 
@@ -214,7 +214,7 @@ class SubNode(Node):
 
     def _emit(self):
         return [
-            Instruction(self.op1, self.op2),
+            Instruction(self.op2, self.op1),
         ]
 
 
@@ -226,10 +226,10 @@ class SubImmNode(Node):
         imm_label = temp_label()
         ret = [
             Instruction('Z', 'Z', '$+4'),
-            DataInstruction(self.op1, label=imm_label),
+            DataInstruction(self.op2, label=imm_label),
         ]
 
-        ret.extend(SubNode(imm_label, self.op2).emit())
+        ret.extend(SubNode(self.op1, imm_label).emit())
         return ret
 
 
@@ -353,8 +353,8 @@ class BitshiftLeftNode(Node):
         #           jmp $+5
         #   ctr:    db 0
         #   diff:   db 1
-        #           mov src, ctr
-        #   loop:   add dest, dest
+        #           mov ctr, SOURCE
+        #   loop:   add DEST, DEST
         #           sub ctr, diff
         #           jz ctr, end
         #           jmp loop
@@ -369,13 +369,13 @@ class BitshiftLeftNode(Node):
             DataInstruction(1, label=diff_lbl),
         ]
 
-        ret.extend(MoveNode(self.op2, ctr_lbl).emit())
+        ret.extend(MoveNode(ctr_lbl, self.op2).emit())
 
         loop_lbl = temp_label()
         end_lbl = temp_label()
 
         ret.extend(AddNode(self.op1, self.op1, label=loop_lbl).emit())
-        ret.extend(SubNode(diff_lbl, ctr_lbl).emit())
+        ret.extend(SubNode(ctr_lbl, diff_lbl).emit())
         ret.extend(JzNode(ctr_lbl, end_lbl).emit())
         ret.extend(JumpNode(loop_lbl).emit())
         ret.extend(NopNode(label=end_lbl).emit())

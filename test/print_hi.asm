@@ -11,7 +11,7 @@ mod:    subleq printme, Z, $+3
         output curr
 
         ; Increment the print address by 1
-        addi 1, mod
+        addi mod, 1
 
         ; Next character
         jmp start
