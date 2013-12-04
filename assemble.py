@@ -384,6 +384,89 @@ class BitshiftLeftNode(Node):
         return ret
 
 
+class DivNode(Node):
+    """
+    div A, B, C will divide A by B and store the result in C
+    """
+    MNEMONIC = 'div'
+    NUM_OPS = 3
+
+    # TODO: operand order?
+    # TODO: this only works for positive numbers
+
+    def _emit(self):
+        # Code:
+        #           jmp begin
+        # tmp:      db 0
+        # ctr:      db 0
+        # begin:    mov tmp, SOURCE
+        # loop:     sub tmp, DIVISOR
+        #           jl tmp, end
+        #           addi ctr, 1
+        #           jmp loop
+        # end:      mov DEST, ctr
+
+        tmp_lbl = temp_label()
+        ctr_lbl = temp_label()
+
+        ret = [
+            Instruction('Z', 'Z', '$+5'),
+            DataInstruction(0, label=tmp_lbl),
+            DataInstruction(0, label=ctr_lbl),
+        ]
+
+        loop_lbl = temp_label()
+        end_lbl = temp_label()
+
+        ret.extend(MoveNode(tmp_lbl, self.op1).emit())
+        ret.extend(SubNode(tmp_lbl, self.op2, label=loop_lbl).emit())
+        ret.extend(JlNode(tmp_lbl, end_lbl).emit())
+        ret.extend(AddImmNode(ctr_lbl, 1).emit())
+        ret.extend(JumpNode(loop_lbl).emit())
+        ret.extend(MoveNode(self.op3, ctr_lbl, label=end_lbl).emit())
+
+        return ret
+
+
+class MulNode(Node):
+    """
+    mul A, B, C will multiply A by B and store the result in C
+    """
+    MNEMONIC = 'mul'
+    NUM_OPS = 3
+
+    def _emit(self):
+        # Code:
+        #           jmp begin
+        # ctr:      db 0
+        # begin:    mov ctr, NUMBER
+        #           zero DEST
+        # loop:     jz ctr, end
+        #           add DEST, SOURCE
+        #           subi ctr, 1
+        #           jmp loop
+        # end:
+
+        ctr_lbl = temp_label()
+        loop_lbl = temp_label()
+        end_lbl = temp_label()
+
+        ret = [
+            Instruction('Z', 'Z', '$+4'),
+            DataInstruction(0, label=ctr_lbl),
+        ]
+
+        ret.extend(MoveNode(ctr_lbl, self.op2).emit())
+        ret.extend(ZeroNode(self.op3).emit())
+        ret.extend(JzNode(ctr_lbl, end_lbl, label=loop_lbl).emit())
+        ret.extend(AddNode(self.op3, self.op1).emit())
+        ret.extend(SubImmNode(ctr_lbl, 1).emit())
+        ret.extend(JumpNode(loop_lbl).emit())
+        ret.extend(NopNode(label=end_lbl).emit())
+
+        return ret
+
+
 class InputNode(Node):
     MNEMONIC = 'input'
     NUM_OPS = 1
@@ -508,6 +591,8 @@ NODE_CLASSES = [
     JleNode,
     JgeNode,
     BitshiftLeftNode,
+    DivNode,
+    MulNode,
     InputNode,
     OutputNode,
 ]
