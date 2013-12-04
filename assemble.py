@@ -386,20 +386,20 @@ class BitshiftLeftNode(Node):
 
 class DivNode(Node):
     """
-    div A, B, C will divide A by B and store the result in C
+    div A, B will divide A by B and store the result in A
     """
     MNEMONIC = 'div'
-    NUM_OPS = 3
+    NUM_OPS = 2
 
-    # TODO: operand order?
     # TODO: this only works for positive numbers
+    # TODO: divide by 0?
 
     def _emit(self):
         # Code:
         #           jmp begin
         # tmp:      db 0
         # ctr:      db 0
-        # begin:    mov tmp, SOURCE
+        # begin:    mov tmp, DEST
         # loop:     sub tmp, DIVISOR
         #           jl tmp, end
         #           addi ctr, 1
@@ -423,43 +423,48 @@ class DivNode(Node):
         ret.extend(JlNode(tmp_lbl, end_lbl).emit())
         ret.extend(AddImmNode(ctr_lbl, 1).emit())
         ret.extend(JumpNode(loop_lbl).emit())
-        ret.extend(MoveNode(self.op3, ctr_lbl, label=end_lbl).emit())
+        ret.extend(MoveNode(self.op1, ctr_lbl, label=end_lbl).emit())
 
         return ret
 
 
 class MulNode(Node):
     """
-    mul A, B, C will multiply A by B and store the result in C
+    mul A, B will multiply A by B and store the result in A
     """
     MNEMONIC = 'mul'
-    NUM_OPS = 3
+    NUM_OPS = 2
 
     def _emit(self):
         # Code:
         #           jmp begin
+        # tmp:      db 0
         # ctr:      db 0
         # begin:    mov ctr, NUMBER
+        #           mov tmp, DEST
         #           zero DEST
         # loop:     jz ctr, end
-        #           add DEST, SOURCE
+        #           add DEST, tmp
         #           subi ctr, 1
         #           jmp loop
         # end:
 
+        tmp_lbl = temp_label()
         ctr_lbl = temp_label()
         loop_lbl = temp_label()
         end_lbl = temp_label()
 
         ret = [
-            Instruction('Z', 'Z', '$+4'),
+            Instruction('Z', 'Z', '$+5'),
             DataInstruction(0, label=ctr_lbl),
+            DataInstruction(0, label=tmp_lbl),
         ]
 
         ret.extend(MoveNode(ctr_lbl, self.op2).emit())
-        ret.extend(ZeroNode(self.op3).emit())
+        ret.extend(MoveNode(tmp_lbl, self.op1).emit())
+        ret.extend(ZeroNode(self.op1).emit())
         ret.extend(JzNode(ctr_lbl, end_lbl, label=loop_lbl).emit())
-        ret.extend(AddNode(self.op3, self.op1).emit())
+        ret.extend(AddNode(self.op1, tmp_lbl).emit())
         ret.extend(SubImmNode(ctr_lbl, 1).emit())
         ret.extend(JumpNode(loop_lbl).emit())
         ret.extend(NopNode(label=end_lbl).emit())
