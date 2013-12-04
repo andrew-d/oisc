@@ -89,6 +89,8 @@ def run_vm(memory, start_addr=0, trace=False,
 
         insn_count += 1
 
+    print("[vm] Ran %d instructions" % (insn_count,), file=sys.stderr)
+
 
 def main():
     if len(sys.argv) > 1:

@@ -219,19 +219,6 @@ class JzNode(Node):
         ]
 
 
-class JnzNode(Node):
-    MNEMONIC = 'jnz'
-    NUM_OPS = 2
-
-    def _emit(self):
-        return [
-            Instruction(self.op1, 'Z', '$+6'),
-            Instruction('Z', 'Z', self.op2),
-            Instruction('Z', 'Z'),
-            Instruction('Z', self.op1),
-        ]
-
-
 class BitshiftLeftNode(Node):
     MNEMONIC = 'shl'
     NUM_OPS = 2
