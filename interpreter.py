@@ -10,6 +10,13 @@ class VirtualMemoryError(IndexError):
         self.addr = addr
 
 
+MAXINT = 2147483647
+def int_overflow(val):
+    if not -MAXINT-1 <= val <= MAXINT:
+        val = (val + (MAXINT + 1)) % (2 * (MAXINT + 1)) - MAXINT - 1
+    return val
+
+
 class Memory(object):
     def __init__(self, mem):
         self.mem = mem
@@ -37,6 +44,9 @@ class Memory(object):
         return self.get(index)
 
     def __setitem__(self, index, value):
+        # Simulate C integer overflow
+        value = int_overflow(value)
+
         if index == -1:
             sys.stdout.write(chr(-value))
             return
