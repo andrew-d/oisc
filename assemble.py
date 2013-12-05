@@ -400,6 +400,7 @@ class DivNode(Node):
         # tmp:      db 0
         # ctr:      db 0
         # begin:    mov tmp, DEST
+        #           zero ctr
         # loop:     sub tmp, DIVISOR
         #           jl tmp, end
         #           addi ctr, 1
@@ -419,6 +420,7 @@ class DivNode(Node):
         end_lbl = temp_label()
 
         ret.extend(MoveNode(tmp_lbl, self.op1).emit())
+        ret.extend(ZeroNode(ctr_lbl).emit())
         ret.extend(SubNode(tmp_lbl, self.op2, label=loop_lbl).emit())
         ret.extend(JlNode(tmp_lbl, end_lbl).emit())
         ret.extend(AddImmNode(ctr_lbl, 1).emit())
@@ -477,7 +479,10 @@ class InputNode(Node):
     NUM_OPS = 1
 
     def _emit(self):
-        return [Instruction(-1, self.op1)]
+        return [
+            Instruction(self.op1, self.op1),
+            Instruction(-1, self.op1),
+        ]
 
 
 class OutputNode(Node):
