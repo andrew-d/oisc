@@ -30,4 +30,5 @@ good_msg: db 'G'
           db 'o'
           db 'o'
           db 'd'
+          db 10
           db 0
