@@ -109,7 +109,7 @@ def main():
     vm = Memory(code)
 
     try:
-        run_vm(vm, start_addr=start, trace=True, max_instructions=1000)
+        run_vm(vm, start_addr=start, trace=True, max_instructions=100000)
     except VirtualMemoryError as e:
         print("VM accessed invalid memory: %d" % (e.addr,), file=sys.stderr)
 
