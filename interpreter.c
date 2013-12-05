@@ -119,6 +119,8 @@ int main(void) {
     }
 
 #ifdef TRACE
-    fprintf(stderr, "[vm] Ran %d instructions", count);
+    fprintf(stderr, "[vm] Ran %d instructions\n", count);
 #endif
+
+    return 0;
 }
