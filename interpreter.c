@@ -75,7 +75,7 @@ int main(void) {
         }
 
         if( a < 0 ) {
-            new = getchar();
+            new = -getchar();
         } else {
             new = code[a];
         }
@@ -88,7 +88,7 @@ int main(void) {
         }
 
 #ifdef TRACE
-        fprintf(stderr, "[vm]     %d --> %d\n", existing, new);
+        fprintf(stderr, "[vm]     mem[%d] = %d --> %d\n", b, existing, new);
 #endif
 
         // Branch.

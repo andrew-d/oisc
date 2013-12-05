@@ -26,8 +26,8 @@ class Memory(object):
             else:
                 ch = sys.stdin.read(1)
                 if len(ch) == 0:
-                    return -1
-                return ord(ch)
+                    return 1
+                return -ord(ch)
 
         if index < 0 or index >= self.capacity:
             raise VirtualMemoryError(index)
@@ -79,7 +79,7 @@ def run_vm(memory, start_addr=0, trace=False,
         memory[b] = new
 
         if trace:
-            print("[vm]     %d --> %d" % (existing, new), file=sys.stderr)
+            print("[vm]     mem[%d] = %d --> %d" % (b, existing, new), file=sys.stderr)
 
         # Branch
         if new <= 0:
@@ -109,7 +109,7 @@ def main():
     vm = Memory(code)
 
     try:
-        run_vm(vm, start_addr=start, trace=True, max_instructions=100)
+        run_vm(vm, start_addr=start, trace=True, max_instructions=1000)
     except VirtualMemoryError as e:
         print("VM accessed invalid memory: %d" % (e.addr,), file=sys.stderr)
 
