@@ -3,7 +3,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-//#define TRACE
+/* #define TRACE */
 
 int32_t code[] = {
 	161, 161, 3, -1, 161, 6, 169, 161, 12, 169,
@@ -53,13 +53,14 @@ int main(void) {
 #endif
 
     while( ip >= 0 ) {
-        // Bounds check.  It might overflow ... but if you're
-        // doing that much emulation, there are bigger problems.
+        /* Bounds check.  It might overflow ... but if you're
+         * doing that much emulation, there are bigger problems.
+         */
         if( (ip + 2) >= MEMORY_SIZE ) {
             die("IP ran past end of array (%d)", ip);
         }
 
-        // Read instruction.
+        /* Read instruction. */
         a = code[ip + 0];
         b = code[ip + 1];
         c = code[ip + 2];
@@ -68,7 +69,7 @@ int main(void) {
         fprintf(stderr, "[vm] %d: %d %d %d\n", ip, a, b, c);
 #endif
 
-        // Bounds check.
+        /* Bounds check. */
         if( b >= MEMORY_SIZE ) {
             die("Bad operand %d at %d", b, ip);
         }
@@ -76,10 +77,11 @@ int main(void) {
             die("Bad operand %d at %d", c, ip);
         }
 
-        // Perform subtraction.  Note that a read of -1 here should read a
-        // single character from stdin, and a write to -1 should write that
-        // character to stdout.  For the initial read, we just have negative
-        // reads return 0.
+        /* Perform subtraction.  Note that a read of -1 here should read a
+         * single character from stdin, and a write to -1 should write that
+         * character to stdout.  For the initial read, we just have negative
+         * reads return 0.
+         */
         if( b < 0 ) {
             existing = 0;
         } else {
@@ -103,7 +105,7 @@ int main(void) {
         fprintf(stderr, "[vm]     mem[%d] = %d --> %d\n", b, existing, new);
 #endif
 
-        // Branch.
+        /* Branch. */
         if( new <= 0 ) {
             ip = c;
         } else {
