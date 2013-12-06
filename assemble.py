@@ -474,6 +474,21 @@ class MulNode(Node):
         return ret
 
 
+class MulImmNode(Node):
+    MNEMONIC = 'muli'
+    NUM_OPS = 2
+
+    def _emit(self):
+        imm_label = temp_label()
+        ret = [
+            Instruction('Z', 'Z', '$+4'),
+            DataInstruction(self.op2, label=imm_label),
+        ]
+
+        ret.extend(MulNode(self.op1, imm_label).emit())
+        return ret
+
+
 class InputNode(Node):
     MNEMONIC = 'input'
     NUM_OPS = 1
@@ -603,6 +618,7 @@ NODE_CLASSES = [
     BitshiftLeftNode,
     DivNode,
     MulNode,
+    MulImmNode,
     InputNode,
     OutputNode,
 ]
