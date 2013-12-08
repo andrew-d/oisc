@@ -1,33 +1,67 @@
-start:  addi expected, 9 ; 3*3*19*4001*4423
-        muli expected, 19
-        jmp inp
-ten:    db 10
-inp:    input curr
-        jle curr, next
-        mul hash, mult
-        add hash, curr
-        jmp inp
+; Password = XZgvSYhh7C
+start:  jmp char_1
+first:  db good_msg
+char_1: input first
+        subi first, 'X'
+        jnz first, end
+        jmp char_2
 
-exp_temp: db 40
-expected: db 0     ; 'foobar', value 3026088333
-next:   mul exp_temp, ten
-        mul exp_temp, ten
-        addi exp_temp, 1        ; exp_temp = 4001
+cmp_3:  db 206
 
-        mul expected, exp_temp
+; Simple compare with 'curr'
+char_2: input curr
+        subi curr, 'Z'
+        jnz curr, end
 
-        zero exp_temp
-        addi exp_temp, 44
-        mul exp_temp, ten       ; exp_temp = 440
-        mul exp_temp, ten       ; exp_temp = 4400
-        addi exp_temp, 23       ; exp_temp = 4423
+; Write location changed
+char_3: input curr
+        muli curr, 2
+        sub curr, cmp_3             ; 'g' = 103, * 2 = 206
+        jnz curr, end
 
-        mul expected, exp_temp  ; should be equal to final val
+; Simple compare, TODO more
+char_4: input curr
+        subi curr, 118              ; 'v' = 118
+        jnz curr, end
 
-        sub hash, expected
-        jnz hash, end
+; Control flow obfuscated
+char_5: jmp ch5_1
+ch5_2:  subi curr, 'S'
+        jnz curr, end
+        jmp char_6
+ch5_1:  input curr
+        jmp ch5_2
 
-print:  subleq curr, curr, $+3
+; Simple compare
+char_6: input first
+        subi first, 'Y'
+        jnz curr, end
+        jmp ch_7_8
+
+; Compares twice
+ctr:    db 9
+ch_7_8: input curr                  ; compare for 'h' twice
+        subi curr, 'h'
+        jnz curr, end
+        subi ctr, 8
+        jg ctr, ch_7_8
+
+; Simple compare, TODO more
+char_9: input curr
+        subi curr, '7'
+        jnz curr, end
+
+; Add of negative number, TODO more
+char_10: input curr
+        addi curr, -67              ; 'C' = 67
+        jnz curr, end
+
+; Simple compare for EOF
+end_ch: input curr                  ; check for EOF
+        jge curr, end
+
+; Print success
+success: subleq curr, curr, $+3
 mod:    subleq good_msg, Z, $+3
         subleq Z, curr, $+3
         subleq Z, Z, $+3
@@ -35,7 +69,7 @@ mod:    subleq good_msg, Z, $+3
         jz curr, done
         output curr
         addi mod, 1
-        jmp print
+        jmp success
 
 done:   nop
 
