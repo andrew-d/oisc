@@ -713,7 +713,7 @@ def parse(text):
 
 
 def convert_to_instructions(nodes):
-    ret = []
+    ret = [DataInstruction(0, label='Z')]
     for node in nodes:
         if node.as_string is not None:
             ret.append(CommentInstruction(node.as_string))
@@ -723,7 +723,6 @@ def convert_to_instructions(nodes):
         # TODO: convert relative displacement to instruction-relative
         ret.extend(insns)
 
-    ret.append(DataInstruction(0, label='Z'))
     return ret
 
 
