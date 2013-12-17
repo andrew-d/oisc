@@ -25,5 +25,10 @@ itest: test/hacknight.bc
 	@echo 'Testing (should print "Good"):'
 	@printf $(PASSWORD) | ./interpreter.py test/hacknight.bc
 
+hacknight.tar.gz: hacknight_*
+	@tar cvzf $@ $^
+
+archive: hacknight.tar.gz
+
 clean:
 	$(RM) $(TARGET) code.gen.h

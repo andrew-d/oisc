@@ -4,3 +4,4 @@ run
 *.gen.h
 .vagrant
 hacknight_*
+hacknight.tar.gz
