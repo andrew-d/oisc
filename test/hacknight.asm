@@ -1,6 +1,6 @@
 ; Password = XZgvSYhh7C
 start:  jmp char_1
-first:  db good_msg
+first:  db '4'
 
 ; 1. Super simple comparison.
 char_1: input first
@@ -28,6 +28,7 @@ char_4: input curr
 
 ; 5. Control flow obfuscated
 char_5: jmp ch5_1
+        db 'F'
 
     ; 6. Simple compare (embedded in above)
     char_6: input first
@@ -39,10 +40,12 @@ ch5_2:  subi curr, 'S'
         jnz curr, end
         jmp char_6
 neg_1:  db -1
+        db 'e'
 ch5_1:  input curr
         jmp ch5_2
 
 ; 7. Compares twice
+        db 'M'
 ctr:    db 9
 ch_7_8: input curr                  ; compare for 'h' twice
         subi curr, 'h'
@@ -75,7 +78,7 @@ mod:    subleq good_msg, Z, $+3
         output curr
         addi mod, 1
         jmp success
-
+        db 'B'
 done:   nop
 
 end:    jmp -1
