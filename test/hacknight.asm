@@ -46,10 +46,10 @@ ch_7_8: input curr                  ; compare for 'h' twice
         subi ctr, 8
         jg ctr, ch_7_8
 
-; Simple compare, TODO more
-char_9: input curr
-        subi curr, '7'
-        jnz curr, end
+; Simple compare, overwrites code
+char_9: input char_6
+        subi char_6, '7'
+        jnz char_6, end
 
 ; Add of negative number, TODO more
 char_10: input curr
