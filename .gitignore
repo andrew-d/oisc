@@ -1,3 +1,4 @@
 *.pyc
 run
 *.bc
+*.gen.h
