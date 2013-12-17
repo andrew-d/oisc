@@ -2,3 +2,5 @@
 run
 *.bc
 *.gen.h
+.vagrant
+hacknight_*

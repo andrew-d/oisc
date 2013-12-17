@@ -1,4 +1,11 @@
-all: run test/hacknight.bc
+PASSWORD := XZgvSYhh7C
+CFLAGS := -Wall -Wextra -pedantic -ansi -O3
+OS := $(shell uname | tr '[:upper:]' '[:lower:]')
+PLATFORM := $(shell uname -p)
+TARGET := hacknight_$(OS)_$(PLATFORM)
+
+
+all: $(TARGET) test/hacknight.bc
 
 test/hacknight.bc: test/hacknight.asm
 	./assemble.py < $< > $@
@@ -6,17 +13,17 @@ test/hacknight.bc: test/hacknight.asm
 code.gen.h: test/hacknight.asm
 	./assemble.py -c < $< > $@
 
-run: interpreter.c code.gen.h
-	$(CC) -Wall -Wextra -pedantic -ansi -o $@ $<
+$(TARGET): interpreter.c code.gen.h
+	$(CC) $(CFLAGS) -o $@ $<
+	strip $@
 
-PASSWORD := XZgvSYhh7C
-test: run
+test: $(TARGET)
 	@echo 'Testing (should print "Good"):'
-	@printf $(PASSWORD) | ./run
+	@printf $(PASSWORD) | ./$(TARGET)
 
 itest: test/hacknight.bc
 	@echo 'Testing (should print "Good"):'
 	@printf $(PASSWORD) | ./interpreter.py test/hacknight.bc
 
 clean:
-	$(RM) run
+	$(RM) $(TARGET) code.gen.h
