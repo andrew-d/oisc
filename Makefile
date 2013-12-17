@@ -12,7 +12,11 @@ run: interpreter.c code.gen.h
 PASSWORD := XZgvSYhh7C
 test: run
 	@echo 'Testing (should print "Good"):'
-	@echo -n $(PASSWORD) | ./run
+	@printf $(PASSWORD) | ./run
+
+itest: test/hacknight.bc
+	@echo 'Testing (should print "Good"):'
+	@printf $(PASSWORD) | ./interpreter.py test/hacknight.bc
 
 clean:
 	$(RM) run
