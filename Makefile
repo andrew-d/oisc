@@ -9,5 +9,10 @@ code.gen.h: test/hacknight.asm
 run: interpreter.c code.gen.h
 	$(CC) -Wall -Wextra -pedantic -ansi -o $@ $<
 
+PASSWORD := XZgvSYhh7C
+test: run
+	@echo 'Testing (should print "Good"):'
+	@echo -n $(PASSWORD) | ./run
+
 clean:
 	$(RM) run
