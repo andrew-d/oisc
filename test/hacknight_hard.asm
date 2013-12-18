@@ -33,7 +33,7 @@ char_5: jmp ch5_1
     ; 6. Simple compare (embedded in above)
     char_6: input first
             subi first, 'Y'
-            add valid, curr
+            add valid, first
             jmp ch_7_8
 
 ch5_2:  subi curr, 'S'
