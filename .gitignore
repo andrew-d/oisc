@@ -3,5 +3,4 @@ run
 *.bc
 *.gen.h
 .vagrant
-hacknight_*
-hacknight.tar.gz
+*.tar.gz
