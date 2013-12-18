@@ -2,7 +2,7 @@ PASSWORD := XZgvSYhh7C
 CFLAGS := -Wall -Wextra -pedantic -ansi -O3
 OS := $(shell uname | tr '[:upper:]' '[:lower:]')
 PLATFORM := $(shell uname -p)
-TARGET := hacknight/hacknight_$(OS)_$(PLATFORM)
+TARGET := dist/hacknight_$(OS)_$(PLATFORM)
 SOURCE_FILE ?= test/hacknight.asm
 BYTECODE_FILE := $(SOURCE_FILE:asm=bc)
 
@@ -34,10 +34,12 @@ itest: $(BYTECODE_FILE)
 	@echo 'Testing (should print nothing):'
 	@printf "bad" | ./interpreter.py $(BYTECODE_FILE)
 
-hacknight.tar.gz: hacknight_*
+hacknight.tar.gz: dist/hacknight_*
 	@tar cvzf $@ $^
 
+.PHONY: archive
 archive: hacknight.tar.gz
 
+.PHONY: clean
 clean:
-	$(RM) $(TARGET) code.gen.h
+	$(RM) $(TARGET) code.gen.h hacknight.tar.gz
